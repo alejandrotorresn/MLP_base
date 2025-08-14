@@ -1,5 +1,6 @@
+-----------------------------------------------------------
 FASE 1. Estructura base del proyecto y prueba de ejecucion
-
+-----------------------------------------------------------
 OBJETIVO
 
 Crear la arquitectura minima para un MLP con capas abstractas, sin implementacion aun.
@@ -22,8 +23,9 @@ MLP_base/
 ├── Makefile
 └── README
 
+-----------------------------------------------------------
 FASE 2. Implementacion de la clase Linear como subclase de Layer
-
+-----------------------------------------------------------
 OBJETIVO
 
 Implementar una capa Linear que herede de Layer, con:
@@ -32,3 +34,26 @@ Implementar una capa Linear que herede de Layer, con:
     - Inicializacion de pesos y sesgos
     - Documentacion detallada por clase, metodo y variable
     - Prueba de ejecucion y verificacion funcional
+
+-----------------------------------------------------------
+FASE 3. Inicializacion Estandarizada de Pesos y Sesgos
+-----------------------------------------------------------
+OBJETIVO
+
+Implemenar metodos de inicializacion de parametros en la clase Lienar,
+siguiendo practicas comunes en Deep Learning para mejorar la estabilidad
+del entrenamiento. Se mantiene la co
+
+FUNDAMENTO TEORICO
+
+La inicializacion adecuada de pesos evita problemas como:
+    - Exploding Gradients: Cuando los valores crecen exponencialmente
+    - Vanishing Gradients: Cuando los valores se reducen a cero
+
+Metodo Recomendados:
+    - Xavier (Glorot): Activaciones lineales o tanh
+    - He (Kaiming): Activaciones ReLU
+
+-----------------------------------------------------------
+FASE 4.
+-----------------------------------------------------------
