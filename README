@@ -1,0 +1,34 @@
+FASE 1. Estructura base del proyecto y prueba de ejecucion
+
+OBJETIVO
+
+Crear la arquitectura minima para un MLP con capas abstractas, sin implementacion aun.
+Esta fase verifica que:
+    - El proyecto compile correctamente.
+    - Las clases se instancian y se recorren.
+    - El flujo forward() y backward() funciona con capas dummy.
+
+ESTRUCTURA DE LAS CARPETAS
+
+MLP_base/
+├── include/
+│   ├── layer.h
+│   ├── mlp.h
+│   └── profiler.h
+├── src/
+│   ├── mlp.cpp
+│   └── profiler.cpp
+├── main.cpp
+├── Makefile
+└── README
+
+FASE 2. Implementacion de la clase Linear como subclase de Layer
+
+OBJETIVO
+
+Implementar una capa Linear que herede de Layer, con:
+    - Metodos forward_cpu, backward_cpu
+    - Metodos forward_gpu, backward_gpu
+    - Inicializacion de pesos y sesgos
+    - Documentacion detallada por clase, metodo y variable
+    - Prueba de ejecucion y verificacion funcional
