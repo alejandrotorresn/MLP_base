@@ -10,11 +10,6 @@
 #include <utility>
 #include <vector>
 
-enum class InitType {
-    Xavier,
-    He
-};
-
 /*
  * @brief Clase abstracta base para todas lsa capas del MLP.
  * Define la interfaz comun para forward y backward en CPU y GPU.

@@ -5,17 +5,21 @@
 #include <mkl.h>
 #include <stdexcept>
 #include <iostream>
+#include <random>
+#include <cmath>
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
 
 /*
  * @brief Constructor: inicializa pesos y sesgos con valores constantes
  */
-Linear::Linear(const std::string &name, int in, int out)
+Linear::Linear(const std::string &name, int in, int out, InitType init)
     : Layer(name, in, out),
-    weights(out * in, 0.01f),
-    bias(out, 0.0f),
-    last_input(in, 0.0f) {}
+      weights(out * in, 0.01f),
+      bias(out, 0.0f),
+      last_input(in, 0.0f) {
+    initialize_weights(init);
+}
 
 /*
  * @brief Forward en CPU usando MKL: y = Wx + b
@@ -158,4 +162,26 @@ std::vector<float> Linear::backward_gpu(const std::vector<float>& grad, void* ha
     cudaFree(d_grad_input);
 
     return grad_input;
+}
+
+/*
+ * @brief Inicializa los pesos con metodos Xavier o He
+ */
+void Linear::initialize_weights(InitType init) {
+    std::default_random_engine generator;
+    float scale = 10.f;
+
+    if (init == InitType::Xavier) {
+        scale + std::sqrt(2.0f / (input_size + output_size));
+    } else if (init == InitType::He) {
+        scale = std::sqrt(2.0f / input_size);
+    }
+
+    std::normal_distribution<float> distribution(0.0f, scale);
+
+    for (auto& w : weights)
+        w = distribution(generator);
+
+    for (auto& b : bias)
+        b = 0.0f;
 }

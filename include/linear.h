@@ -8,6 +8,11 @@
 #pragma once
 #include "layer.h"
 
+enum class InitType {
+    Xavier,
+    He
+};
+
 /*
  * @brief Capa lineal (fully connected) que implementa la interfaz Layer.
  * Realiza la operacion: y = Wx + b
@@ -20,7 +25,7 @@ public:
      * @param in Numero de entradas
      * @param out Numero de salidas
      */
-    Linear(const std::string& name, int in, int out);
+    Linear(const std::string& name, int in, int out, InitType init = InitType::Xavier);
 
     /*
      * @brief Propagacion hacia adelante en CPU
@@ -46,6 +51,8 @@ private:
     std::vector<float> weights;     // Matriz de pesos [out x in]
     std::vector<float> bias;        // Vector de sesgos [out]
     std::vector<float> last_input;  // Cache de entrada para backward
+
+    void initialize_weights(InitType init);
 };
 
 #endif //LINEAR_H

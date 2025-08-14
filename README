@@ -55,5 +55,31 @@ Metodo Recomendados:
     - He (Kaiming): Activaciones ReLU
 
 -----------------------------------------------------------
-FASE 4.
+FASE 4. Implementacion de la Clase Activation como
+        subclase de Layer
 -----------------------------------------------------------
+OBJETIVO
+
+Disenar e implementar una capa de activacion que herede de Layer,
+como soporte para funciones comunes como ReLU, Sigmoid y Tanh.
+Esta capa debe ser completamente funcional en CPU y GPU, y debe
+integrarse al flujo forward() y backward del MLP.
+
+FUNDAMENTO TEORICO
+
+Las funciones de activacion introducen no linealidad en la red,
+permitiendo que el MLP aprenda representacione complejas. Cada
+funcion tiene propiedades distintas:
+
+    - ReLU: Capas ocultas, redes profundas
+    - Sigmoid: Salidas binarias
+    - Tanh: Salidas centradas en cero
+
+ESTRUCTURA PROPUESTA
+
+MLP_base/
+├── include/
+│   ├── activation.h      // Declaración de clase Activation
+├── src/
+│   ├── activation.cpp    // Implementación de métodos
+

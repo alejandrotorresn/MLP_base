@@ -1,4 +1,5 @@
 #include "mlp.h"
+#include "linear.h"
 #include <iostream>
 
 /*
@@ -50,6 +51,14 @@ int main() {
 
     std::cout << "→ Forward output size: " << output.size() << std::endl;
     std::cout << "→ Backward output size: " << grad.size() << std::endl;
+
+    // Segunda prueba
+    Linear layer("linear_test", 4, 3, InitType::He);
+
+    std::cout << "Pesos inicializados (He): \n";
+    for (float w : layer.forward_cpu({1.0f, 2.0f, 3.0f, 4.0f}))
+        std::cout << w << " ";
+    std::cout << std::endl;
 
     return 0;
 }
