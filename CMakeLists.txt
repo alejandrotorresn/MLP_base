@@ -16,6 +16,8 @@ set(SOURCES
         src/profiler.cpp
         include/linear.h
         src/linear.cu
+        include/activation.h
+        src/activation.cpp
 )
 add_executable(mlp_exec ${SOURCES})
 target_link_libraries(mlp_exec ${MKL_IMPORTED_TARGETS} ${MPI_LIBRARIES} -lcublas -lcurand)
