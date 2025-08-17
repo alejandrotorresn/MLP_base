@@ -56,7 +56,8 @@ Metodo Recomendados:
 
 -----------------------------------------------------------
 FASE 4. Implementacion de la Clase Activation como
-        subclase de Layer
+        subclase de Layer. Se agrega soporte con cuBLAS
+        y cuDNN
 -----------------------------------------------------------
 OBJETIVO
 
@@ -74,6 +75,17 @@ funcion tiene propiedades distintas:
     - ReLU: Capas ocultas, redes profundas
     - Sigmoid: Salidas binarias
     - Tanh: Salidas centradas en cero
+
+CONSIDERACIONES TECNICAS
+
+    - cuBLAS no implementa fuciones de activacion directamente,
+        pero puede usarse para operaciones auxiliares
+        (e.g. escalado, suma)
+    - cuDNN si ofrece activaciones optimizadas, pero requiere
+        estructuras especificas (cudnnTensorDescriptor_t,
+        cudnnActivationDescriptor_t)
+    - Para esta fase, se implementa ReLU con cuDNN y se deja
+        Sigmoid/Tanh como extensiones
 
 ESTRUCTURA PROPUESTA
 
