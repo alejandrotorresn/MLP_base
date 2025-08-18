@@ -133,3 +133,15 @@ NOTA:
     Se creo un archivo gpu_error_checking.hpp para los macros
         - CUDA_CHECK
         - CUDNN_CHECK
+
+
+-----------------------------------------------------------
+FASE 6. Test unitarios y registros de tiempo
+-----------------------------------------------------------
+FASE 6A. Tests unitarios para validacion funcional
+         y consistencia numerica
+-----------------------------------------------------------
+OBJETIVOS
+    - Verificar que forward_cpu ≈ forward_gpu y backward_cpu ≈ backward_gpu
+    - Detectar errores de calculo, desbordamiento o inconsistencias
+    - Establecer tolerancias numericas razonables (por ejemplo, 1e-5)

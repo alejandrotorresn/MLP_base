@@ -60,7 +60,7 @@ std::vector<float> GPUActivationHelper::backward(const std::vector<float>& input
     CUDNN_CHECK(
         cudnnActivationForward(handle, act_desc,
             &alpha, tensor_desc, d_input,
-            &beta, tensor_desc, d_grad)
+            &beta, tensor_desc, d_output)
         );
 
     CUDNN_CHECK(

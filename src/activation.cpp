@@ -30,7 +30,7 @@ Activation::Activation(const std::string& name, const int size, const ActType ty
  * configura el modo de activacion y la forma del tensor como [1,1,1,N].
  * @throws std::runtime_error si hay error en llamadas cuDNN.
  */
-void Activation::setup_cudnn() {
+void Activation::setup_cudnn() const {
     cudnnActivationMode_t mode = {};
     switch (act_type) {
         case ActType::ReLU:

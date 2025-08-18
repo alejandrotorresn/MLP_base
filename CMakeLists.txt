@@ -22,6 +22,8 @@ set(SOURCES
         include/gpu_activation_helper.hpp
         src/gpu_activation_helper.cpp
         include/gpu_error_checking.hpp
+        src/test_activation.cpp
+        include/test_activation.hpp
 )
 add_executable(mlp_exec ${SOURCES})
 

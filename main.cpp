@@ -1,6 +1,9 @@
 #include "mlp.hpp"
+#include "test_activation.hpp"
 #include "linear.hpp"
 #include <iostream>
+
+#include "activation.hpp"
 
 /*
  * @brief Clase dummy para pruebas. No realiza operaciones reales
@@ -47,7 +50,7 @@ int main() {
     // Datos de entrada simulados
     const std::vector<float> input(10, 1.0f);
     const std::vector<float> output = model.forward(input, handle);
-    std::vector<float> grad = model.backward(output, handle);
+    const std::vector<float> grad = model.backward(output, handle);
 
     std::cout << "→ Forward output size: " << output.size() << std::endl;
     std::cout << "→ Backward output size: " << grad.size() << std::endl;
@@ -56,9 +59,16 @@ int main() {
     Linear layer("linear_test", 4, 3, InitType::He);
 
     std::cout << "Pesos inicializados (He): \n";
-    for (float w : layer.forward_cpu({1.0f, 2.0f, 3.0f, 4.0f}))
+    for (const float w : layer.forward_cpu({1.0f, 2.0f, 3.0f, 4.0f}))
         std::cout << w << " ";
     std::cout << std::endl;
+
+
+    std::cout << "-------------------------------------------\n";
+    std::cout << "Testing activation consistency...\n";
+    test_activation_consistency(ActType::ReLU, 64);
+    test_activation_consistency(ActType::Sigmoid, 64);
+    test_activation_consistency(ActType::Tanh, 64);
 
     return 0;
 }

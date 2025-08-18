@@ -37,6 +37,7 @@ public:
      * @param type Tipo de activacion (ReLU, Sigmoid, Tanh)
      */
     Activation(const std::string& name, int size, ActType type);
+    ~Activation() override;
 
     /*
      * @brief Propagacion hacia adelante en CPU
@@ -71,8 +72,7 @@ private:
     /*
      * @brief Inicializa los descriptores cuDNN segun el tipo de activacion
      */
-    void setup_cudnn();
-    ~Activation() override;
+    void setup_cudnn() const;
 };
 
 #endif //MLP_BASE_ACTIVATION_H
