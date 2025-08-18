@@ -1,42 +1,15 @@
 //
 // Created by zephyr on 8/14/25.
 //
-#include "activation.h"
+#include "gpu_activation_helper.hpp"
+#include "gpu_error_checking.hpp"
+#include "activation.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
 #include <cuda_runtime.h>
 #include <cudnn.h>
 
-/*
- * @brief Verifica el estado de una llamada CUDa y lanza excepcion si falla.
- * @param code Codigo de error devuelto por una funcion CUDA
- * @param file Archivo fuente donde se invoca la macro
- * @param line Linea de codifo donde se invoca la macro
- * @throws std::runtime_error con mensaje detallado si hay error.
- */
-#define CUDA_CHECK(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char* file, int line) {
-    if (code != cudaSuccess)
-        throw std::runtime_error(std::string("CUDA Error")
-            + cudaGetErrorString(code) + " at " + file + ":"
-            + std::to_string(line));
-}
-
-/*
- * @brief Verifica el estado de una llamanada cuDNN y lanza una exepcion si falla.
- * @param status codigo de estado devuelto por una funcion cuDNN.
- * @param file Archivo fuente donde se invoco la macro.
- * @param line Linea de codigo donde se invoco la macro
- * @throws std::runtime_error con mensaje detallado si hay error.
- */
-#define CUDNN_CHECK(status) { cudnnAssert((status), __FILE__, __LINE__); }
-inline void cudnnAssert(cudnnStatus_t status, const char* file, int line) {
-    if (status != CUDNN_STATUS_SUCCESS)
-        throw std::runtime_error(std::string("cuDNN Error")
-            + cudnnGetErrorString(status) + " at " + file + ":"
-            + std::to_string(line));
-}
 
 /*
  * @brief Constructor de la clase Activation
@@ -168,32 +141,8 @@ std::vector<float> Activation::forward_gpu(const std::vector<float>& x, void* ha
     last_input = x;
     const auto handle = static_cast<cudnnHandle_t>(handle_void);
 
-    // vectores de entrada y salida en GPU
-    float* d_input;
-    float* d_output;
-
-    CUDA_CHECK(cudaMalloc(&d_input, input_size * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_output, input_size * sizeof(float)));
-    CUDA_CHECK(cudaMemcpy(d_input,x.data(), input_size * sizeof(float),
-        cudaMemcpyHostToDevice));
-
-    const float alpha = 1.0f;
-    const float beta = 0.0f;
-
-    CUDNN_CHECK(
-        cudnnActivationForward(handle, act_desc,
-        &alpha, tensor_desc, d_input,
-        &beta, tensor_desc, d_output)
-        );
-
-    std::vector<float> output(input_size);
-    CUDA_CHECK(cudaMemcpy(output.data(), d_output, input_size * sizeof(float),
-        cudaMemcpyDeviceToHost));
-
-    CUDA_CHECK(cudaFree(d_input));
-    CUDA_CHECK(cudaFree(d_output));
-
-    return output;
+    const GPUActivationHelper helper(input_size, act_desc, tensor_desc);
+    return helper.forward(x, handle);
 }
 
 /*
@@ -212,46 +161,6 @@ std::vector<float> Activation::backward_gpu(const std::vector<float>& grad, void
 
     const auto handle = static_cast<cudnnHandle_t>(handle_void);
 
-    // Reservar memoria en GPU
-    float* d_input;         // entrada original de la activacion
-    float* d_output;        // salida de la activacion
-    float* d_grad;          // gradiente con respecto a la salida (dy)
-    float* d_input_grad;    // gradiente con respecto a las entrada (dx)
-
-    CUDA_CHECK(cudaMalloc(&d_input, input_size * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_output, input_size * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_grad, input_size * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_input_grad, input_size * sizeof(float)));
-
-    // Copiar datos desde CPU a GPU
-    CUDA_CHECK(cudaMemcpy(d_input, last_input.data(), input_size * sizeof(float),
-        cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_grad, grad.data(), input_size * sizeof(float),
-        cudaMemcpyHostToDevice));
-
-    // Parametros escalares para cuDNN
-    const float alpha = 1.0f;
-    const float beta = 0.0f;
-
-    // Aplicar retropropagacion de activacion: dx = dY * f'(x)
-    CUDNN_CHECK(
-        cudnnActivationBackward(handle, act_desc,
-            &alpha, tensor_desc, d_output,    // y: salida de la activacion
-            tensor_desc, d_grad,            // dy: gradiente w.r.t salida
-            tensor_desc, d_input,             // x: entrada original
-            &beta, tensor_desc, d_input_grad)  // dx: gradiente w.r.t. entrada
-    );
-
-    // Copiar resultado a CPU
-    std::vector<float> grad_input(input_size);
-    CUDA_CHECK(cudaMemcpy(grad_input.data(), d_input_grad, input_size * sizeof(float),
-        cudaMemcpyDeviceToHost));
-
-    // Liberar memoria GPU
-    CUDA_CHECK(cudaFree(d_input));
-    CUDA_CHECK(cudaFree(d_output));
-    CUDA_CHECK(cudaFree(d_grad));
-    CUDA_CHECK(cudaFree(d_input_grad));
-
-    return grad_input;
+    const GPUActivationHelper helper(input_size, act_desc, tensor_desc);
+    return helper.backward(last_input, grad, handle);
 }

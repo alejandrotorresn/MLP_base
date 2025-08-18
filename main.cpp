@@ -1,5 +1,5 @@
-#include "mlp.h"
-#include "linear.h"
+#include "mlp.hpp"
+#include "linear.hpp"
 #include <iostream>
 
 /*

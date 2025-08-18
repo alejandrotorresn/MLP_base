@@ -13,9 +13,9 @@ ESTRUCTURA DE LAS CARPETAS
 
 MLP_base/
 ├── include/
-│   ├── layer.h
-│   ├── mlp.h
-│   └── profiler.h
+│   ├── layer.hpp
+│   ├── mlp.hpp
+│   └── profiler.hpp
 ├── src/
 │   ├── mlp.cpp
 │   └── profiler.cpp
@@ -91,7 +91,45 @@ ESTRUCTURA PROPUESTA
 
 MLP_base/
 ├── include/
-│   ├── activation.h      // Declaración de clase Activation
+│   ├── activation.hpp      // Declaración de clase Activation
 ├── src/
 │   ├── activation.cpp    // Implementación de métodos
 
+-----------------------------------------------------------
+FASE 5. Encapsulamiento de la logica GPU para activaciones
+-----------------------------------------------------------
+OBJETIVO
+
+Separar la logica de ejecucion en GPU (cuDNN) de la clase Activation, creando
+una clase auciliar que gestione:
+    - La asignacion y liberacion de memoria en GPU
+    - Las llamadas a cudnnActivationForward y cudnnActivarionBackward
+    - La transferencia de datos entre CPU y GPU
+    - La trazabilidad y validacion de error CUDA/cuDNN.
+
+esto permite que la clase Activation se mantenga limpia y enfocada en la
+semantica de capa, mientras que la clase auxiliar se encarga de los
+detalles de ejecucion en GPU.
+
+FUNDAMENTO TEORICO
+
+Encapsular la logica GPU permite aplicar principios de diseno como:
+
+    - Responsabilidad unica: Activation define la capa; GpuActivationHelper ejecuta en GPU
+    - Modularidad: Se puede probar, extender o reemplazar la logica GPU sin tocar la capa.
+    - Reusabilidad: El helper puede usarse en otras capas con activaciones similares.
+    - Validacion incremental: Permite comparar CPU vs GPU de forma controlada.
+
+ESTRUCTURA PROPUESTA
+
+MLP_base/
+├── include/
+│   └── gpu_activation_helper.hpp
+├── src/
+│   └── gpu_activation_helper.cpp
+
+
+NOTA:
+    Se creo un archivo gpu_error_checking.hpp para los macros
+        - CUDA_CHECK
+        - CUDNN_CHECK

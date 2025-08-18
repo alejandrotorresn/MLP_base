@@ -6,7 +6,7 @@
 #define LINEAR_H
 
 #pragma once
-#include "layer.h"
+#include "layer.hpp"
 
 enum class InitType {
     Xavier,

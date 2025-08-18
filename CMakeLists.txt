@@ -14,11 +14,14 @@ set(SOURCES
         src/mlp.cpp
         main.cpp
         src/profiler.cpp
-        include/linear.h
+        include/linear.hpp
         src/linear.cu
-        include/activation.h
+        include/activation.hpp
         src/activation.cpp
         src/activation.cpp
+        include/gpu_activation_helper.hpp
+        src/gpu_activation_helper.cpp
+        include/gpu_error_checking.hpp
 )
 add_executable(mlp_exec ${SOURCES})
 

@@ -6,8 +6,8 @@
 #define MLP_H
 
 #pragma once
-#include "layer.h"
-#include "profiler.h"
+#include "layer.hpp"
+#include "profiler.hpp"
 #include <vector>
 
 /*

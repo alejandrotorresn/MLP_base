@@ -6,7 +6,7 @@
 #define MLP_BASE_ACTIVATION_H
 
 #pragma once
-#include "layer.h"
+#include "layer.hpp"
 #include <vector>
 #include <string>
 #include <cudnn.h>

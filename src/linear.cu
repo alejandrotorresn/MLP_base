@@ -1,7 +1,7 @@
 //
 // Created by zephyr on 8/12/25.
 //
-#include "linear.h"
+#include "linear.hpp"
 #include <mkl.h>
 #include <stdexcept>
 #include <iostream>
