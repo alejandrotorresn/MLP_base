@@ -1,9 +1,9 @@
 #include "mlp.hpp"
-#include "test_activation.hpp"
 #include "linear.hpp"
-#include <iostream>
-
 #include "activation.hpp"
+#include "tests/test_activation.hpp"
+#include "tests/test_mlp_linear.hpp"
+#include <iostream>
 
 /*
  * @brief Clase dummy para pruebas. No realiza operaciones reales
@@ -34,7 +34,7 @@ public:
 };
 
 int main() {
-    MLP model;
+    /*MLP model;
     void* handle = nullptr;         // Simulacion de contexto GPU
 
     // Crear capas dummy
@@ -42,15 +42,15 @@ int main() {
     model.add_layer(new DummyLayer("layer2", 5, 2));
 
     // Asignacion de dispositivos
-    model.profiler.setDevice("layer1", "forward", "CPU");
+    /*model.profiler.setDevice("layer1", "forward", "CPU");
     model.profiler.setDevice("layer1", "forward", "GPU");
     model.profiler.setDevice("layer2", "backward", "CPU");
     model.profiler.setDevice("layer2", "backward", "GPU");
 
     // Datos de entrada simulados
     const std::vector<float> input(10, 1.0f);
-    const std::vector<float> output = model.forward(input, handle);
-    const std::vector<float> grad = model.backward(output, handle);
+    const std::vector<float> output = model.forward(input, handle, false);
+    const std::vector<float> grad = model.backward(output, handle, false);
 
     std::cout << "→ Forward output size: " << output.size() << std::endl;
     std::cout << "→ Backward output size: " << grad.size() << std::endl;
@@ -68,7 +68,11 @@ int main() {
     std::cout << "Testing activation consistency...\n";
     test_activation_consistency(ActType::ReLU, 64);
     test_activation_consistency(ActType::Sigmoid, 64);
-    test_activation_consistency(ActType::Tanh, 64);
+    test_activation_consistency(ActType::Tanh, 64);*/
+
+    std::cout << "-------------------------------------------\n";
+    std::cout << "Testing weights modification...\n";
+    test_mlp_two_linear_layers();
 
     return 0;
 }

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
+#include <cassert>
 
 /*
  * @brief Constructor: inicializa pesos y sesgos con valores constantes
@@ -17,7 +18,9 @@ Linear::Linear(const std::string &name, int in, int out, InitType init)
     : Layer(name, in, out),
       weights(out * in, 0.01f),
       bias(out, 0.0f),
-      last_input(in, 0.0f) {
+      last_input(in, 0.0f),
+      weight_grad(out * in,0.0f),
+      bias_grad(out, 0.0f) {
     initialize_weights(init);
 }
 
@@ -46,6 +49,7 @@ std::vector<float> Linear::forward_cpu(const std::vector<float> &x) {
                 beta,
                 output.data(), 1);
 
+    assert(output.size() == output_size);
     return output;
 }
 
@@ -68,6 +72,18 @@ std::vector<float> Linear::backward_cpu(const std::vector<float>& grad) {
                 grad.data(), 1,
                 beta,
                 grad_input.data(), 1);
+
+    // Gradiente de pesos: weight_grad += grad ⊗ last_input
+    for (int i = 0; i < output_size; ++i) {
+        for (int j = 0; j < input_size; ++j) {
+            weight_grad[i * input_size + j] += grad[i] * last_input[j];
+        }
+    }
+
+    // Gradiente de sesgos: bias_grad += grad
+    for (int i = 0; i < output_size; ++i) {
+        bias_grad[i] += grad[i];
+    }
 
     return grad_input;
 }
@@ -161,6 +177,18 @@ std::vector<float> Linear::backward_gpu(const std::vector<float>& grad, void* ha
     cudaFree(d_grad);
     cudaFree(d_grad_input);
 
+    // Acumular gradientes en CPU (por ahora)
+    for (int i = 0; i < output_size; ++i) {
+        for (int j = 0; j < input_size; ++j) {
+            weight_grad[i * input_size + j] += grad[i] * last_input[j];
+        }
+    }
+
+    for (int i = 0; i < output_size; ++i) {
+        bias_grad[i] += grad[i];
+    }
+
+
     return grad_input;
 }
 
@@ -172,9 +200,9 @@ void Linear::initialize_weights(InitType init) {
     float scale = 10.f;
 
     if (init == InitType::Xavier) {
-        scale + std::sqrt(2.0f / (input_size + output_size));
+        scale = std::sqrt(2.0f / static_cast<float>(input_size + output_size));
     } else if (init == InitType::He) {
-        scale = std::sqrt(2.0f / input_size);
+        scale = std::sqrt(2.0f / static_cast<float>(input_size));
     }
 
     std::normal_distribution<float> distribution(0.0f, scale);
@@ -184,4 +212,13 @@ void Linear::initialize_weights(InitType init) {
 
     for (auto& b : bias)
         b = 0.0f;
+}
+
+void Linear::update_weights(Optimizer& optimizer) {
+    optimizer.update(weights, weight_grad);
+    optimizer.update(bias, bias_grad);
+
+    // Limpiar gradientes acumulador
+    std::fill(weight_grad.begin(), weight_grad.end(), 0.0f);
+    std::fill(bias_grad.begin(), bias_grad.end(), 0.0f);
 }

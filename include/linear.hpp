@@ -47,10 +47,16 @@ public:
      */
     std::vector<float> backward_gpu(const std::vector<float> &x,void* handle) override;
 
+
+    void update_weights(Optimizer& optimizer) override;
+
 private:
     std::vector<float> weights;     // Matriz de pesos [out x in]
     std::vector<float> bias;        // Vector de sesgos [out]
     std::vector<float> last_input;  // Cache de entrada para backward
+
+    std::vector<float> weight_grad; // Gradiente acumulado de pesos
+    std::vector<float> bias_grad;   // Gradiente acumulado de sesgos
 
     void initialize_weights(InitType init);
 };

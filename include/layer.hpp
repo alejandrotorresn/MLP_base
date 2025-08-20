@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "optimizer.hpp"
 
 /*
  * @brief Clase abstracta base para todas lsa capas del MLP.
@@ -42,6 +43,13 @@ public:
      * @brief Propagacion hacia atras en GPU
      */
     virtual std::vector<float> backward_gpu(const std::vector<float>& grad, void* handle) = 0;
+
+    /*
+     * @brief Aplica la actualizacion de pesos usando el optimizador.
+     * Las capas sin parametros pueden dejar esta funcion vacia.
+     * @param optimizer Referencia al optimizador.
+     */
+    virtual void update_weights(Optimizer& optimizer) {};
 
     virtual ~Layer() = default;
 };

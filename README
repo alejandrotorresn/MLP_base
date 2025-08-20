@@ -145,3 +145,36 @@ OBJETIVOS
     - Verificar que forward_cpu ≈ forward_gpu y backward_cpu ≈ backward_gpu
     - Detectar errores de calculo, desbordamiento o inconsistencias
     - Establecer tolerancias numericas razonables (por ejemplo, 1e-5)
+
+-----------------------------------------------------------
+FASE 6B. Registro de tiempos de ejecucion
+-----------------------------------------------------------
+OBJETIVOS
+
+    - Medir tiempo de ejecucion por capa (forward, backward)
+    - Medir tiempo total del modelo
+    - Comparar CPU vs GPU
+
+-----------------------------------------------------------
+FASE 7. Entrenamiento supervisado - estructura base
+-----------------------------------------------------------
+OBJETIVOS
+    - Implmentar clases modulares para funcion perdida, optimizador y entrenamiento.
+    - Soporte regresion (MSE) y clasificacion (softmax + CrossEntropy).
+    - Mantener la compatibilidad con CPU y GPU
+    - Preparar el ciclo forward → loss → backward → update
+
+ESTRUCTURA SUGERIDA
+
+MLP_base/
+├── include/
+│   ├── loss.hpp
+│   ├── optimizer.hpp
+│   └── trainer.hpp
+├── src/
+│   ├── loss.cpp
+│   ├── optimizer.cpp
+│   └── trainer.cpp
+
+
+
