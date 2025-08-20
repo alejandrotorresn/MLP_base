@@ -32,7 +32,7 @@ public:
      * @brief Ejecuta forward sobre todas las capas
      * @param input Entrada del modelo.
      * @param handle Puntero a cudnnHandle_t (solo si se usa GPU).
-     * @param use_gpu Si es true, ejecuta todo en GPU.
+     * @param use_gpu Si es true, ejecuta en GPU.
      */
     std::vector<float> forward(const std::vector<float>& input, void* handle, bool use_gpu) const;
 
