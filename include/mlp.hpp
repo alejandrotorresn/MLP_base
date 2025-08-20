@@ -40,7 +40,7 @@ public:
      * @brief Ejecuta backward sobre todas las capas
      * @param grad Gradiente respecto a la salida.
      * @param handle Puntero a cudnnHandle_t (solo si se usa GPU).
-     * @param use_gpu si es true, ejecuta todo en GPU.
+     * @param use_gpu si es true, ejecuta en GPU.
      */
     std::vector<float> backward(const std::vector<float>& grad, void* handle, bool use_gpu) const;
 
