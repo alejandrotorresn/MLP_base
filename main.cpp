@@ -5,50 +5,23 @@
 #include "tests/test_mlp_linear.hpp"
 #include <iostream>
 
-/*
- * @brief Clase dummy para pruebas. No realiza operaciones reales
- */
-class DummyLayer : public Layer {
-public:
-    DummyLayer(const std::string& name, const int in, const int out) : Layer(name, in, out) {}
-
-    std::vector<float> forward_cpu(const std::vector<float>& x) override {
-        std::cout << "-> Dummy forward CPU\n";
-        return std::vector<float>(output_size, 1.0f);
-    }
-
-    std::vector<float> backward_cpu(const std::vector<float>& grad) override {
-        std::cout << "-> Dummy backward CPU\n";
-        return std::vector<float>(input_size, 0.5f);
-    }
-
-    std::vector<float> forward_gpu(const std::vector<float>& x, void* handle) override {
-        std::cout << "-> Dummy forward GPU\n";
-        return std::vector<float>(output_size, 2.0f);
-    }
-
-    std::vector<float> backward_gpu(const std::vector<float>& grad, void* handle) override {
-        std::cout << "-> Dummy backward GPU\n";
-        return std::vector<float>(input_size, 0.25f);
-    }
-};
 
 int main() {
-    /*MLP model;
+    MLP model;
     void* handle = nullptr;         // Simulacion de contexto GPU
 
     // Crear capas dummy
-    model.add_layer(new DummyLayer("layer1", 10, 5));
-    model.add_layer(new DummyLayer("layer2", 5, 2));
+    model.add_layer(new Linear("fc1", 2, 3));
+    model.add_layer(new Linear("fc2", 3, 1));
 
     // Asignacion de dispositivos
     /*model.profiler.setDevice("layer1", "forward", "CPU");
     model.profiler.setDevice("layer1", "forward", "GPU");
     model.profiler.setDevice("layer2", "backward", "CPU");
     model.profiler.setDevice("layer2", "backward", "GPU");
-
+*/
     // Datos de entrada simulados
-    const std::vector<float> input(10, 1.0f);
+    std::vector<float> input = {1.0f, -1.0f};
     const std::vector<float> output = model.forward(input, handle, false);
     const std::vector<float> grad = model.backward(output, handle, false);
 
@@ -68,7 +41,7 @@ int main() {
     std::cout << "Testing activation consistency...\n";
     test_activation_consistency(ActType::ReLU, 64);
     test_activation_consistency(ActType::Sigmoid, 64);
-    test_activation_consistency(ActType::Tanh, 64);*/
+    test_activation_consistency(ActType::Tanh, 64);
 
     std::cout << "-------------------------------------------\n";
     std::cout << "Testing weights modification...\n";

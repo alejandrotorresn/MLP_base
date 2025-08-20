@@ -45,14 +45,14 @@ void test_mlp_two_linear_layers() {
     std::vector<float> target = {0.5f};
 
     // Paso 1: forward
-    std::vector<float> output_before = model.forward(input, nullptr, true);
+    std::vector<float> output_before = model.forward(input, nullptr, false);
     std::cout << "Output inicial: " << output_before[0] << "\n";
 
     // Paso 2: calcular gradientes de perdida (MSE)
     std::vector<float> grad = {2.0f * (output_before[0] - target[0])};
 
     // Paso 3: backward
-    model.backward(grad, nullptr, true);
+    model.backward(grad, nullptr, false);
 
     // Paso 4: guardar pesos antes de actualizar
     auto* fc2 = dynamic_cast<Linear*>(model.layers[1]);
@@ -68,7 +68,7 @@ void test_mlp_two_linear_layers() {
     std::cout << "Pesos modificados?: " << (changed ? "Si" : "No") << "\n";
 
     // Paso 7: nuevo forward
-    std::vector<float> output_after = model.forward(input, nullptr, true);
+    std::vector<float> output_after = model.forward(input, nullptr, false);
     std::cout << "Output despues de update: " << output_after[0] << "\n";
 
     assert(changed && "Los pesos no se modificaron tras update_weights");
