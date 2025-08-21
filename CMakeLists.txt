@@ -33,6 +33,7 @@ set(SOURCES
         src/trainer.cpp
         tests/test_mlp_linear.cpp
         tests/test_mlp_linear.hpp
+        src/loss.cu
 )
 add_executable(mlp_exec ${SOURCES})
 

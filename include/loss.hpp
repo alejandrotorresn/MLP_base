@@ -22,7 +22,7 @@ public:
      * @param y_true Vector de etiquetas verdaderas.
      * @return Valor escalar de la perdida.
      */
-    virtual float compute(const std::vector<float>& y_pred,
+    [[nodiscard]] virtual float compute(const std::vector<float>& y_pred,
                           const std::vector<float>& y_true) const = 0;
 
     /*
@@ -31,8 +31,41 @@ public:
      * @param y_true Vector de etqiuetas verdaderas
      * @return Vector de gradientes por componente.
      */
-    virtual std::vector<float> gradient(const std::vector<float>& y_pred,
+    [[nodiscard]] virtual std::vector<float> gradient(const std::vector<float>& y_pred,
                                         const std::vector<float>& y_true) const = 0;
+
+    /*
+     * @brief Calcula el valor de la perdidad entre prediccion y etiqueta en GPU.
+     * @param y_pred Puntero a salida del modelo en memoria GPU.
+     * @param y_true Puntero a etiquetas verdaderas en memoria GPU.
+     * @param size Numero de elementos
+     * @param handle Contexto o recurso auxiliar para ejecucion en GPU
+     * @return Valor escalar de la perdida
+     */
+    virtual float compute_gpu(const float* y_pred,
+                             const float* y_true,
+                             size_t size,
+                             void* handle) const = 0;
+
+    /*
+     * @brief Calcula el gradiente de la perdida en GPU.
+     * @param y_pred Puntero a salida del modelo en memoria GPU.
+     * @param y_tru Puntero a etiquetas verdaderas en memoria GPU.
+     * @param grad_out Puntero de salida para almacenar los gradientes.
+     * @param size Numero de elementos.
+     * @param handle Contexto o recurso auxiliar para ejecucion en GPU.
+     */
+    virtual void gradient_gpu(const float* y_pred,
+                              const float* y_true,
+                              float* grad_out,
+                              size_t size,
+                              void* handle) const = 0;
+
+    /*
+     * @breif Indica si la implementacion soporta ejecucion en GPU.
+     * @return true si tiene implementacion GPU, false en caso contrario.
+     */
+    [[nodiscard]] virtual bool supports_gpu() const { return false; }
 };
 
 /*
@@ -44,6 +77,19 @@ public:
                   const std::vector<float>& y_true) const override;
     [[nodiscard]] std::vector<float> gradient(const std::vector<float>& y_pred,
                                 const std::vector<float>& y_true) const override;
+
+    float compute_gpu(const float* y_pred,
+                      const float* y_true,
+                      size_t size,
+                      void* handle) const override;
+
+    void gradient_gpu(const float* y_pred,
+                      const float* y_true,
+                      float* grad_out,
+                      size_t size,
+                      void* handle) const override;
+
+    [[nodiscard]] bool supports_gpu() const override { return true; }
 };
 
 /*

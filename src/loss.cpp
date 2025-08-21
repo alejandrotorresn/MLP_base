@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 
+
 float MSELoss::compute(const std::vector<float>& y_pred,
                        const std::vector<float>& y_true) const {
     assert(y_pred.size() == y_true.size() && "MSELoss::compute - y_pred y y_true deben tener el mismo tamaño");
