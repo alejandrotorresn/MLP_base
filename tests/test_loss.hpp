@@ -12,16 +12,8 @@
 #include "activation.hpp"
 #include "loss.hpp"
 
-/*
- * @brief Ejecuta pruebas unitarias comparativas entre CPU y GPU para MSELoss
- * Valudad consistencia numerica entre rutas y correcta ejecucion en GPU
- */
-void test_mse_loss_consistency(cublasHandle_t cublas);
-
-/*
- * @brief ejecuta pruenas unitarias para CrossEntropyLoss en GPU
- * Valida calculo de perdida y gradiente usando cuDNN
- */
-void test_cross_entropy_gpu(cudnnHandle_t cudnn, cublasHandle_t cublas);
+bool compare_vectors_loss(const std::vector<float>& a, const std::vector<float>& b, float tol = 1e-4f);
+void test_cross_entropy_loss(size_t size);
+void test_mse_loss(size_t size);
 
 #endif //MLP_BASE_TEST_LOSS_HPP

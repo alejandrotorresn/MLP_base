@@ -51,16 +51,11 @@ int main() {
 
     // Tercera prueba - Loss
     std::cout << "-------------------------------------------\n";
-    cudnnHandle_t cudnn;
-    cublasHandle_t cublas;
-    cudnnCreate(&cudnn);
-    cublasCreate(&cublas);
+    std::cout << "=== Pruebas Unitarias de Losses ===\n";
+    test_cross_entropy_loss(10);
+    test_mse_loss(10);
 
-    test_mse_loss_consistency(cublas);
-    test_cross_entropy_gpu(cudnn, cublas);
 
-    cudnnDestroy(cudnn);
-    cublasDestroy(cublas);
 
     return 0;
 }

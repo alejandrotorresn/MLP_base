@@ -3,9 +3,10 @@
 //
 #include "loss.hpp"
 #include <cublas_v2.h>
-#include <cudnn.h>
 #include <cassert>
 #include <stdexcept>
+#include <cfloat>
+#include <cmath>
 
 /*
  * @brief Calcula la perdida MSE en GPU usando cuBLAS.
@@ -39,7 +40,7 @@ float MSELoss::compute_gpu(const float* y_pred,
 
     // MSE = dot(y_diff, y_diff) / size
     float dot = 0.0f;
-    cublasSdot(cublas, static_cast<int>(size), y_diff, 1, y_diff,1, &dot);
+    cublasSdot(cublas, static_cast<int>(size), y_diff, 1, y_diff, 1, &dot);
     cudaFree(y_diff);
 
     return dot / static_cast<float>(size);
@@ -57,20 +58,45 @@ float MSELoss::compute_gpu(const float* y_pred,
  * @param size Numero de elementos
  * @param handle Puntero a cublasHandle_t
  */
-void MSELoss::gradient_gpu(const float* y_pred, const float* y_true, float* grad_out, size_t size, void* handle) const {
+void MSELoss::gradient_gpu(const float* y_pred,
+                           const float* y_true,
+                           float* grad_out,
+                           size_t size,
+                           void* handle) const {
     assert(y_pred && y_true && grad_out && handle);
 
     const auto cublas = static_cast<cublasHandle_t>(handle);
 
-    // grad_out = y_pred - y_true
     float alpha = 1.0f;
     float beta = -1.0f;
-    cublasSaxpy(cublas, static_cast<int>(size), &beta, y_true, 1, grad_out, 1);     // grad_out = -y_true
-    cublasSaxpy(cublas, static_cast<int>(size), &alpha, y_pred, 1, grad_out, 1);        // grad_out += y_pred
+
+    // grad_out = y_pred - y_true
+    cublasSaxpy(cublas, static_cast<int>(size), &beta, y_true, 1, grad_out, 1);
+    cublasSaxpy(cublas, static_cast<int>(size), &alpha, y_pred, 1, grad_out, 1);
 
     // grad_out *= 2 / size
     const float scale = 2.0f / static_cast<float>(size);
     cublasSscal(cublas, static_cast<int>(size), &scale, grad_out, 1);
+}
+
+//
+// CrossEntropyLoss - GPU (CUDA puro)
+//
+
+__global__ void log_softmax_kernel(const float* logits, float* output,
+                                   float max_val, float log_sum_exp, size_t size) {
+    size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < size)
+        output[idx] = logits[idx] - max_val - log_sum_exp;
+}
+
+__global__ void cross_entropy_grad_kernel(const float* logits, const float* y_true,
+                                          float* grad_out, float max_val, float sum_exp, size_t size) {
+    size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < size) {
+        float softmax = expf(logits[idx] - max_val) / sum_exp;
+        grad_out[idx] = softmax - y_true[idx];
+    }
 }
 
 /*
@@ -86,38 +112,53 @@ void MSELoss::gradient_gpu(const float* y_pred, const float* y_true, float* grad
  * @return Perdida CrossEntropy como flotante.
  */
 float CrossEntropyLoss::compute_gpu(const float* y_pred,
-                                const float* y_true,
-                                size_t size,
-                                void* handle) const {
-    assert(y_pred && y_true && handle);
+                                    const float* y_true,
+                                    size_t size,
+                                    void* handle) const {
+    assert(y_pred && y_true);
 
-    const auto cudnn = static_cast<cudnnHandle_t>(handle);
+    // 1. Calcular max(logits)
+    float* d_max;
+    cudaMalloc(&d_max, sizeof(float));
+    cudaMemcpy(d_max, y_pred, sizeof(float), cudaMemcpyDeviceToDevice);
 
-    cudnnTensorDescriptor_t desc;
-    cudnnCreateTensorDescriptor(&desc);
-    cudnnSetTensor4dDescriptor(desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, 1, 1,
-                             static_cast<int>(size));
+    float max_val = -FLT_MAX;
+    for (size_t i = 0; i < size; ++i) {
+        float val;
+        cudaMemcpy(&val, y_pred + i, sizeof(float), cudaMemcpyDeviceToHost);
+        if (val > max_val) max_val = val;
+    }
 
+    // 2. Calcular sum(exp(logits - max))
+    float sum_exp = 0.0f;
+    for (size_t i = 0; i < size; ++i) {
+        float val;
+        cudaMemcpy(&val, y_pred + i, sizeof(float), cudaMemcpyDeviceToHost);
+        sum_exp += expf(val - max_val);
+    }
+    float log_sum_exp = logf(sum_exp);
+
+    // 3. Calcular log_softmax
     float* log_softmax;
     cudaMalloc(&log_softmax, size * sizeof(float));
 
-    constexpr float alpha = 1.0f;
-    constexpr float beta = 0.0f;
-    cudnnSoftmaxForward(cudnn, CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_INSTANCE,
-                        &alpha, desc, y_pred, &beta, desc, log_softmax);
+    int threads = 256;
+    int blocks = (size + threads - 1) / threads;
+    log_softmax_kernel<<<blocks, threads>>>(y_pred, log_softmax, max_val, log_sum_exp, size);
 
-    cublasHandle_t cublas;
-    cublasCreate(&cublas);
-
+    // 4. Calcular dot(y_true, log_softmax)
     float loss = 0.0f;
+    for (size_t i = 0; i < size; ++i) {
+        float log_val, true_val;
+        cudaMemcpy(&log_val, log_softmax + i, sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&true_val, y_true + i, sizeof(float), cudaMemcpyDeviceToHost);
+        loss += true_val * log_val;
+    }
 
-    cublasSdot(cublas, static_cast<int>(size), y_true, 1, log_softmax, 1, &loss);
-
-    cublasDestroy(cublas);
     cudaFree(log_softmax);
-    cudnnDestroyTensorDescriptor(desc);
+    cudaFree(d_max);
 
-    return  -loss;
+    return -loss;
 }
 
 /*
@@ -136,31 +177,28 @@ void CrossEntropyLoss::gradient_gpu(const float* y_pred,
                                     float* grad_out,
                                     size_t size,
                                     void* handle) const {
-    assert(y_pred && y_true && grad_out && handle);
+    assert(y_pred && y_true && grad_out);
 
-    const auto cudnn = static_cast<cudnnHandle_t>(handle);
+    // 1. Calcular max(logits)
+    float max_val = -FLT_MAX;
+    for (size_t i = 0; i < size; ++i) {
+        float val;
+        cudaMemcpy(&val, y_pred + i, sizeof(float), cudaMemcpyDeviceToHost);
+        if (val > max_val) max_val = val;
+    }
 
-    cudnnTensorDescriptor_t desc;
-    cudnnCreateTensorDescriptor(&desc);
-    cudnnSetTensor4dDescriptor(desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
-                             1, 1, 1, static_cast<int>(size));
+    // 2. Calcular sum(exp(logits - max))
+    float sum_exp = 0.0f;
+    for (size_t i = 0; i < size; ++i) {
+        float val;
+        cudaMemcpy(&val, y_pred + i, sizeof(float), cudaMemcpyDeviceToHost);
+        sum_exp += expf(val - max_val);
+    }
 
-    constexpr float alpha = 1.0f;
-    constexpr float beta = 0.0f;
-
-    cudnnSoftmaxForward(cudnn, CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_INSTANCE,
-                        &alpha, desc, y_pred, &beta, desc, grad_out);
-
-    cublasHandle_t cublas;
-    cublasCreate(&cublas);
-
-    const float neg = -1.0f;
-
-    cublasSaxpy(cublas, static_cast<int>(size), &neg,
-              y_true, 1, grad_out, 1);
-
-    cublasDestroy(cublas);
-    cudnnDestroyTensorDescriptor(desc);
+    // 3. Calcular grad = softmax - y_true
+    int threads = 256;
+    int blocks = (size + threads - 1) / threads;
+    cross_entropy_grad_kernel<<<blocks, threads>>>(y_pred, y_true, grad_out, max_val, sum_exp, size);
 }
 
 
