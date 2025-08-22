@@ -92,9 +92,11 @@ public:
     [[nodiscard]] bool supports_gpu() const override { return true; }
 };
 
+
 /*
  * @brief Implementacion de perdida Cross-Entropy para clasificacion multiclase.
  * Asume que las salidas estan normalizadas (softmax)
+ * Soporta ejecucion en GPU mediante cuDNN.
  */
 class CrossEntropyLoss final : public Loss {
 public:
@@ -103,6 +105,32 @@ public:
 
     [[nodiscard]] std::vector<float> gradient(const std::vector<float>& y_pred,
                                 const std::vector<float>& y_true) const override;
+
+    /*
+     * @brief Calcula la perdida Cross-Entropy en GPU usando cuDNN
+     * Aplica softmax logaritmico y realiza la reduccion:
+     *      CE = -∑(y_true * log_softmax(y_pred))
+     */
+    float compute_gpu(const float* y_pred,
+                      const float* y_true,
+                      size_t size,
+                      void* handle) const override;
+
+    /*
+     * @brief Calcula el gradiente de Cross-Entropy en GPU usando cuDNN.
+     * Realiza la operacion:
+     *      grad = softmax(y_pred) - y_true
+     */
+    void gradient_gpu(const float* y_pred,
+                      const float* y_true,
+                      float* grad_out,
+                      size_t size,
+                      void* handle) const override;
+
+    /*
+     * @brief Indica que esta implementacion soporta ejecucion en GPU.
+     */
+    [[nodiscard]] bool supports_gpu() const override { return true; }
 };
 
 #endif //MLP_BASE_LOSS_HPP
