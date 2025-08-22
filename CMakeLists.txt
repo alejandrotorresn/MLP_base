@@ -34,6 +34,8 @@ set(SOURCES
         tests/test_mlp_linear.cpp
         tests/test_mlp_linear.hpp
         src/loss.cu
+        tests/test_loss.cpp
+        tests/test_loss.hpp
 )
 add_executable(mlp_exec ${SOURCES})
 

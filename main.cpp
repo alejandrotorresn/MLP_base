@@ -3,6 +3,7 @@
 #include "activation.hpp"
 #include "tests/test_activation.hpp"
 #include "tests/test_mlp_linear.hpp"
+#include "tests/test_loss.hpp"
 #include <iostream>
 
 
@@ -46,6 +47,20 @@ int main() {
     std::cout << "-------------------------------------------\n";
     std::cout << "Testing weights modification...\n";
     test_mlp_two_linear_layers();
+
+
+    // Tercera prueba - Loss
+    std::cout << "-------------------------------------------\n";
+    cudnnHandle_t cudnn;
+    cublasHandle_t cublas;
+    cudnnCreate(&cudnn);
+    cublasCreate(&cublas);
+
+    test_mse_loss_consistency(cublas);
+    test_cross_entropy_gpu(cudnn, cublas);
+
+    cudnnDestroy(cudnn);
+    cublasDestroy(cublas);
 
     return 0;
 }
